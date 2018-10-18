@@ -117,7 +117,7 @@ void MainWindow::HisStretch_color(){
     showColorHistogram(imgin);
 
 }
-void MainWindow::Segmentation(){
+void MainWindow::Segmentation(int c){
     QImage imgin(ui->il_filePath->text());
     QImage imgout(imgin.width(),imgin.height(),QImage::Format_ARGB32);
     for (int x = 0 ; x < imgin.width();x++){
@@ -125,7 +125,7 @@ void MainWindow::Segmentation(){
             QRgb color = imgin.pixel(x,y);
             int gray = qGray(color);
             int grayout = gray;
-            if (grayout>127) {
+            if (grayout>c) {
                 grayout = 255;
             } else {
                 grayout=0;
@@ -275,12 +275,12 @@ void MainWindow::canBangToChucDo(){
     std::cout << "tong pixel "<< tongPixel << std::endl;
     for (int i =0 ; i<256 ; i++){
         hn[i] =(float)h[i]/tongPixel;
-        std::cout<< hn[i] << " ";
+//        std::cout<< hn[i] << " ";
     }
     std::cout << "test " << std::endl;
     for (int i =1;i<256 ; i++) {
         c[i]=c[i-1]+hn[i];
-        std::cout<< c[i] << " ";
+//        std::cout<< c[i] << " ";
     }
     std::cout << "test " << std::endl;
     for(int x =0 ; x<imgin.width();x++) {
@@ -288,12 +288,88 @@ void MainWindow::canBangToChucDo(){
             QRgb rgb = imgin.pixel(x,y);
             int gray = qGray(rgb);
             int col = 255*c[gray];
-            std::cout << "test " << col << " ";
+//            std::cout << "test " << col << " ";
             output.setPixel(x,y,qRgb(col,col,col));
         }
     }
     DisplayImage(output,"canbang");
     showGrayHistogram(output);
+}
+
+void MainWindow::noiseMaker(){
+    QImage imgin(ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+    float randsalt [imgin.width()][imgin.height()];
+    for (int x=0 ; x<imgin.width(); x++) {
+        for (int y=0; y<imgin.height();y++) {
+            randsalt[x][y] = (float)rand()/RAND_MAX;
+            if (randsalt[x][y]<=0.01/2.0) {
+                imgout.setPixel(x,y,qRgb(255,255,255));
+            } else if (randsalt[x][y]>=1-0.01/2) {
+                imgout.setPixel(x,y,qRgb(0,0,0));
+            } else {
+                imgout.setPixel(x,y,imgin.pixel(x,y));
+            }
+        }
+    }
+
+    DisplayImage(imgout,"noise");
+    QString selectFilter ;
+    QString file = QFileDialog::getSaveFileName(this,"save file","/home/banhtrung/Pictures/","PNG (*.png);;All File (*.*)",&selectFilter);
+    imgout.save(file,"PNG");
+}
+
+void MainWindow::meanFilterColor() {
+    QImage image(ui->il_filePath->text());
+    QImage imgout (image.width(),image.height(),QImage::Format_ARGB32);
+
+    int size = 3;
+    int cells = size*size ;
+    int magin = size/2;
+    int sumR ,sumG,sumB ;
+    for (int x=0;x<image.width();x++){
+        for (int y=0 ;y<image.height();y++) {
+            sumB=sumR=sumG = 0;
+            for (int i = -magin;i<=magin ;i++) {
+                for (int j = -magin;j<=magin ;j++) {
+                    QColor rgb = image.pixel(x+i,y+j);
+                    sumR+= rgb.red();
+                    sumG+=rgb.green();
+                    sumB+=rgb.blue();
+                }
+            }
+            imgout.setPixel(x,y,qRgb(sumR/cells,sumG/cells,sumB/cells));
+        }
+    }
+    DisplayImage(image,"goc");
+    DisplayImage(imgout,"loc");
+}
+
+void MainWindow::medianFilterGray(){
+    QImage image(ui->il_filePath->text());
+    QImage imgout (image.width(),image.height(),QImage::Format_ARGB32);
+
+    int size = 3;
+    int cells = size*size ;
+    int magin = size/2;
+    int h[cells];
+    for (int x=0;x<image.width();x++){
+        for (int y=0 ;y<image.height();y++) {
+            int k =0 ;
+            for (int i = -magin;i<=magin ;i++) {
+                for (int j = -magin;j<=magin ;j++) {
+                    QRgb rgb = image.pixel(x+i,y+j);
+                    int gray = qGray(rgb);
+                    h[k]=gray;
+                    k++;
+                }
+            }
+            qSort(h,h+cells);
+            imgout.setPixel(x,y,qRgb(h[cells/2],h[cells/2],h[cells/2]));
+        }
+    }
+    DisplayImage(image,"goc");
+    DisplayImage(imgout,"loc");
 }
 
 void MainWindow::DisplayImage(QImage &image, QString titel){
@@ -331,7 +407,7 @@ void MainWindow::on_btn_his_stretch_color_clicked()
 
 void MainWindow::on_btn_segmentation_gray_clicked()
 {
-    Segmentation();
+    Segmentation(127);
 }
 
 void MainWindow::on_btn_linear_clicked()
@@ -342,4 +418,19 @@ void MainWindow::on_btn_linear_clicked()
 void MainWindow::on_btn_Qualitization_gray_clicked()
 {
     canBangToChucDo();
+}
+
+void MainWindow::on_btn_Noise_clicked()
+{
+    noiseMaker();
+}
+
+void MainWindow::on_btn_Mean_Color_clicked()
+{
+    meanFilterColor();
+}
+
+void MainWindow::on_btn_Media_gray_clicked()
+{
+    medianFilterGray();
 }
