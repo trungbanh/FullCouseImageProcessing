@@ -372,6 +372,252 @@ void MainWindow::medianFilterGray(){
     DisplayImage(imgout,"loc");
 }
 
+void MainWindow::meanFilterGray(){
+    QImage image(ui->il_filePath->text());
+    QImage imgout (image.width(),image.height(),QImage::Format_ARGB32);
+
+    int size = 3;
+    int cells = size*size ;
+    int magin = size/2;
+    int sumG ;
+    for (int x=0;x<image.width();x++){
+        for (int y=0 ;y<image.height();y++) {
+            sumG = 0;
+            for (int i = -magin;i<=magin ;i++) {
+                for (int j = -magin;j<=magin ;j++) {
+                    QRgb rgb = image.pixel(x+i,y+j);
+                    int gray = qGray(rgb);
+                    sumG += gray;
+                }
+            }
+            imgout.setPixel(x,y,qRgb(sumG/cells,sumG/cells,sumG/cells));
+        }
+    }
+    DisplayImage(image,"goc");
+    DisplayImage(imgout,"loc");
+}
+
+void MainWindow::medianFilterColor() {
+    QImage image(ui->il_filePath->text());
+    QImage imgout (image.width(),image.height(),QImage::Format_ARGB32);
+
+    int size = 3;
+    int cells = size*size ;
+    int magin = size/2;
+    int sumR[cells] ,sumG[cells],sumB[cells] ;
+    for (int x=0;x<image.width();x++){
+        for (int y=0 ;y<image.height();y++) {
+            int k = 0;
+            for (int i = -magin;i<=magin ;i++) {
+                for (int j = -magin;j<=magin ;j++) {
+                    QColor rgb = image.pixel(x+i,y+j);
+                    sumR[k]= rgb.red();
+                    sumG[k]=rgb.green();
+                    sumB[k]=rgb.blue();
+                    k++;
+                }
+            }
+            qSort(sumR,sumR+cells);
+            qSort(sumG,sumG+cells);
+            qSort(sumB,sumB+cells);
+
+            imgout.setPixel(x,y,qRgb(sumR[cells/2],sumG[cells/2],sumB[cells/2]));
+        }
+    }
+    DisplayImage(image,"goc");
+    DisplayImage(imgout,"loc");
+}
+
+void MainWindow::GradientX(){
+    QImage imgin (ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+
+    imgout.fill(Qt::white);
+    QRgb rgb1,rgb2;
+
+    int gray1=0,gray2=0,grayout=0;
+
+    for (int x=0;x<imgin.width()-1;x++) {
+        for (int y=0;y<imgin.height();y++) {
+            rgb1 = imgin.pixel(x,y);
+            gray1 = qGray(rgb1);
+            rgb2 = imgin.pixel(x+1,y);
+            gray2 = qGray(rgb2);
+            grayout = abs(gray2 - gray1);
+            imgout.setPixel(x,y,qRgb(grayout,grayout,grayout));
+        }
+    }
+    DisplayImage(imgout,"bien doc");
+}
+
+
+void MainWindow::GradientY(){
+    QImage imgin (ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+
+    imgout.fill(Qt::white);
+    QRgb rgb1,rgb2;
+
+    int gray1=0,gray2=0,grayout=0;
+
+    for (int x=0;x<imgin.width();x++) {
+        for (int y=0;y<imgin.height()-1;y++) {
+            rgb1 = imgin.pixel(x,y);
+            gray1 = qGray(rgb1);
+            rgb2 = imgin.pixel(x,y+1);
+            gray2 = qGray(rgb2);
+            grayout = abs(gray2 - gray1);
+            imgout.setPixel(x,y,qRgb(grayout,grayout,grayout));
+        }
+    }
+    DisplayImage(imgout,"bien ngang");
+}
+
+void MainWindow::RobertX(){
+    QImage imgin (ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+
+    imgout.fill(Qt::white);
+    QRgb rgb1,rgb2;
+
+    int gray1=0,gray2=0,grayout=0;
+
+    for (int x=0;x<imgin.width()-1;x++) {
+        for (int y=0;y<imgin.height()-1;y++) {
+            rgb1 = imgin.pixel(x,y);
+            gray1 = qGray(rgb1);
+            rgb2 = imgin.pixel(x+1,y+1);
+            gray2 = qGray(rgb2);
+            grayout = abs(gray2 - gray1);
+            imgout.setPixel(x,y,qRgb(grayout,grayout,grayout));
+        }
+    }
+    DisplayImage(imgout,"bien ngang");
+}
+void MainWindow::RobertY(){
+    QImage imgin (ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+
+    imgout.fill(Qt::white);
+    QRgb rgb1,rgb2;
+
+    int gray1=0,gray2=0,grayout=0;
+
+    for (int x=0;x<imgin.width()-1;x++) {
+        for (int y=0;y<imgin.height()-1;y++) {
+            rgb1 = imgin.pixel(x+1,y);
+            gray1 = qGray(rgb1);
+            rgb2 = imgin.pixel(x,y+1);
+            gray2 = qGray(rgb2);
+            grayout = abs(gray2 - gray1);
+            imgout.setPixel(x,y,qRgb(grayout,grayout,grayout));
+        }
+    }
+    DisplayImage(imgout,"bien ngang");
+}
+
+void MainWindow::SobelX(){
+    QImage imgin (ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+    imgout.fill(Qt::white);
+
+    int maskSize =3 ;
+    int magin = maskSize/2 ;
+    int mashSobel [maskSize][maskSize];
+    mashSobel[0][0]=-1;
+    mashSobel[0][1]=-2;
+    mashSobel[0][2]=-1;
+    mashSobel[1][0]=0;
+    mashSobel[1][1]=0;
+    mashSobel[1][2]=0;
+    mashSobel[2][0]=1;
+    mashSobel[2][1]=2;
+    mashSobel[2][2]=1;
+    int sumMask ;
+
+    for (int x=magin;x<imgin.width()-1;x++) {
+        for (int y=magin;y<imgin.height()-1;y++) {
+            sumMask=0;
+            for (int i=-magin;i<=magin;i++) {
+                for (int j=-magin;j<=magin;j++) {
+                    QRgb rgb = imgin.pixel(x+i,y+j);
+                    int gray = qGray(rgb);
+                    sumMask+= gray * mashSobel[i+magin][j+magin];
+                }
+            }
+            imgout.setPixel(x,y,qRgb(abs(sumMask),abs(sumMask),abs(sumMask)) );
+        }
+    }
+    DisplayImage(imgout,"bien ngang");
+}
+
+void MainWindow::SobelY(){
+    QImage imgin (ui->il_filePath->text());
+    QImage imgout (imgin.width(),imgin.height(),QImage::Format_ARGB32);
+    imgout.fill(Qt::white);
+
+    int maskSize =3 ;
+    int magin = maskSize/2 ;
+    int mashSobel [maskSize][maskSize];
+    mashSobel[0][0]=-1;
+    mashSobel[0][1]=-2;
+    mashSobel[0][2]=-1;
+    mashSobel[1][0]=0;
+    mashSobel[1][1]=0;
+    mashSobel[1][2]=0;
+    mashSobel[2][0]=1;
+    mashSobel[2][1]=2;
+    mashSobel[2][2]=1;
+    int sumMask ;
+
+    for (int x=magin;x<imgin.width()-1;x++) {
+        for (int y=magin;y<imgin.height()-1;y++) {
+            sumMask=0;
+            for (int i=-magin;i<=magin;i++) {
+                for (int j=-magin;j<=magin;j++) {
+                    QRgb rgb = imgin.pixel(x+i,y+j);
+                    int gray = qGray(rgb);
+                    sumMask+= gray * mashSobel[i+magin][j+magin];
+                }
+            }
+            imgout.setPixel(x,y,qRgb(abs(sumMask),abs(sumMask),abs(sumMask)) );
+        }
+    }
+    DisplayImage(imgout,"bien ngang");
+}
+
+int MainWindow::nguongTuDong(QImage img) {
+    int c =127 ;
+    int newC = c ;
+    do {
+        int G1 =0;
+        int count1 = 0;
+        int G2 =0;
+        int count2 =0;
+        c= newC;
+        for (int x=0;x<img.width();x++) {
+            for (int y=0;y<img.height();y++) {
+                QRgb rgb = img.pixel(x,y);
+                int gray = qGray(rgb);
+                QRgb color = qRgb(gray,gray,gray);
+                img.setPixel(x,y,color);
+                if (gray >c){
+                    G1 = G1+gray;
+                    count1++;
+                } else if (gray <= c) {
+                    G2 = G2 + gray ;
+                    count2++;
+                }
+            }
+        }
+        int M1 = G1/count1;
+        int M2 = G2/count2;
+        newC = (M1+M2)/2;
+    } while (abs(newC-c)!=0);
+    std::cout << newC << std::endl;
+    return newC;
+}
+
 void MainWindow::DisplayImage(QImage &image, QString titel){
     QLabel *label = new QLabel;
     label->setPixmap(QPixmap::fromImage(image));
@@ -407,7 +653,9 @@ void MainWindow::on_btn_his_stretch_color_clicked()
 
 void MainWindow::on_btn_segmentation_gray_clicked()
 {
-    Segmentation(127);
+    QImage image (ui->il_filePath->text());
+    int c = nguongTuDong(image);
+    Segmentation(c);
 }
 
 void MainWindow::on_btn_linear_clicked()
@@ -433,4 +681,45 @@ void MainWindow::on_btn_Mean_Color_clicked()
 void MainWindow::on_btn_Media_gray_clicked()
 {
     medianFilterGray();
+}
+
+void MainWindow::on_btn_Mean_gray_clicked()
+{
+    meanFilterGray();
+}
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    medianFilterColor();
+}
+
+void MainWindow::on_btn_Gradien_X_clicked()
+{
+    GradientX();
+}
+
+void MainWindow::on_btn_Gradient_Y_clicked()
+{
+    GradientY();
+}
+
+void MainWindow::on_btn_Robert_X_clicked()
+{
+    RobertX();
+}
+
+void MainWindow::on_btn_Robert_Y_clicked()
+{
+    RobertY();
+}
+
+void MainWindow::on_btn_sobel_x_clicked()
+{
+    SobelX();
+}
+
+void MainWindow::on_btn_sobel_y_clicked()
+{
+    SobelY();
 }
