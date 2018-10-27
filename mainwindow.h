@@ -20,7 +20,7 @@ public:
     void HisSlide_color();
     void HisStretch_gray();
     void HisStretch_color();
-    void Segmentation(int c);
+    QImage Segmentation(int c);
     void showGrayHistogram(QImage image);
     void showColorHistogram(QImage image);
     void bienDoiTuyenTinh();
@@ -37,6 +37,13 @@ public:
     void SobelX();
     void SobelY();
     int nguongTuDong(QImage img);
+    QImage erode (QImage &image);
+    QImage dilation (QImage &image);
+    QImage open (QImage &img);
+    QImage close (QImage &image);
+
+    int otsu (QImage &img);
+
 
 
 
@@ -79,6 +86,14 @@ private slots:
     void on_btn_sobel_x_clicked();
 
     void on_btn_sobel_y_clicked();
+
+    void on_btn_erode_clicked();
+
+    void on_btn_dilate_clicked();
+
+    void on_btn_open_clicked();
+
+    void on_bnt_close_clicked();
 
 private:
     Ui::MainWindow *ui;

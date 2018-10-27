@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>762</width>
-    <height>657</height>
+    <height>718</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -313,6 +313,73 @@
          <widget class="QPushButton" name="btn_sobel_y">
           <property name="text">
            <string>Sobel Y</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_10">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>400</y>
+      <width>341</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Morphological Transformations</string>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_12">
+     <item>
+      <widget class="QFrame" name="frame_6">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QPushButton" name="btn_erode">
+          <property name="text">
+           <string>erode</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_dilate">
+          <property name="text">
+           <string>dilate</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QFrame" name="frame_7">
+       <property name="frameShape">
+        <enum>QFrame::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Raised</enum>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QPushButton" name="btn_open">
+          <property name="text">
+           <string>open</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="bnt_close">
+          <property name="text">
+           <string>clode</string>
           </property>
          </widget>
         </item>

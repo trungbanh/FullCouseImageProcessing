@@ -117,7 +117,7 @@ void MainWindow::HisStretch_color(){
     showColorHistogram(imgin);
 
 }
-void MainWindow::Segmentation(int c){
+QImage MainWindow::Segmentation(int c){
     QImage imgin(ui->il_filePath->text());
     QImage imgout(imgin.width(),imgin.height(),QImage::Format_ARGB32);
     for (int x = 0 ; x < imgin.width();x++){
@@ -135,6 +135,7 @@ void MainWindow::Segmentation(int c){
         }
     }
     DisplayImage(imgout,"liuliu");
+    return imgout;
 }
 void MainWindow::showGrayHistogram(QImage image){
     const int HEIGHT =128 ;
@@ -618,6 +619,140 @@ int MainWindow::nguongTuDong(QImage img) {
     return newC;
 }
 
+QImage MainWindow::erode(QImage &img) {
+
+    int kernel[3][3] = {{0,1,0},{1,1,1},{0,1,0}};
+    int margin = 1;
+    QImage imgout (img.width(),img.height(),QImage::Format_ARGB32);
+    imgout.fill(Qt::white);
+
+    int gray ;
+    for (int x=margin;x<img.width()-margin;x++) {
+        for (int y=margin;y<img.height()-margin;y++) {
+            int OK = 1 ;
+            for (int i=-margin;i<=margin;i++) {
+                for (int j=-margin;j<=margin;j++) {
+                    gray = qGray(img.pixel(x+i,y+j));
+                    OK = OK && (kernel[i][j]==0 || gray==0);
+                }
+            }
+            if (OK){
+                imgout.setPixel(x,y,qRgb(0,0,0));
+            }
+        }
+    }
+    return imgout ;
+}
+
+QImage MainWindow::dilation(QImage &img) {
+    int kernel[3][3] = {{0,1,0},{1,1,1},{0,1,0}};
+    int margin = 1;
+    QImage imgout (img.width(),img.height(),QImage::Format_ARGB32);
+    imgout.fill(Qt::white);
+
+    int gray ;
+    for (int x=margin;x<img.width()-margin;x++) {
+        for (int y=margin;y<img.height()-margin;y++) {
+
+            gray = qGray(img.pixel(x,y));
+            if (gray ==0) {
+                for (int i=-margin;i<=margin;i++) {
+                    for (int j=-margin;j<=margin;j++) {
+                        if (kernel[i+margin][j+margin]){
+                            imgout.setPixel(x+i,y+j,qRgb(0,0,0));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return imgout ;
+}
+
+int MainWindow::otsu(QImage &img) {
+
+    int area = img.width()*img.height();
+    int histogram[255] ;
+    float tongPhuongsai[254];
+
+    int ixH_m1=0,ixH_m2=0;
+    int tongH1=0 ,tongH2=0;
+    float M1=0.0, M2=0.0;
+    float zicLeft=0.0, zicRight=0.0;
+    float weightLeft = 0.0 , weightRight = 0.0;
+
+    for (int i=0 ; i<255 ; i++) {
+        histogram[i]=0;
+    }
+    for (int i=0 ; i<254 ; i++) {
+        tongPhuongsai[i]=0.0;
+    }
+    for (int x=0 ;x<img.width();x++) {
+        for (int y=0;y<img.height();y++) {
+            QRgb rgb = img.pixel(x,y);
+            int gray = qGray(rgb);
+            histogram[gray]++;
+        }
+    }
+    for (int t =1 ; t < 255 ; t++) {
+
+        M1=0.0;
+        M2=0.0;
+        zicLeft=0.0;
+        zicRight=0.0;
+        weightLeft = 0.0;
+        weightRight = 0.0;
+        ixH_m1=0;
+        ixH_m2=0;
+
+        for (int i = 0; i<=t ;i++) {
+            // tinh trung binh
+            tongH1+=histogram[i];
+            ixH_m1 += histogram[i]*i;
+        }
+        M1 = ixH_m1/tongH1;
+        for (int i = 0; i<=t ;i++) {
+            // tinh phuong sai
+            zicLeft += (histogram[i]-M1)*(histogram[i]-M1);
+        }
+        zicLeft = zicLeft/tongH1;
+
+        weightLeft = tongH1/area;
+
+
+        // for right
+        for (int i=t+1 ;i<=254 ;i++) {
+            tongH2 += histogram[i];
+            ixH_m2 += histogram[i]*i;
+        }
+        M2 = ixH_m2/tongH2;
+        for (int i=t+1 ; i<=255;i++) {
+            zicRight +=(histogram[i]-M2)*(histogram[i]-M2);
+        }
+        zicRight = zicRight/tongH2;
+
+        weightRight = tongH2/area;
+
+        tongPhuongsai[t-1] = weightLeft*zicLeft + weightRight*zicRight;
+//        std::cout << "test otsu " << tongPhuongsai[t-1] << "  " << std::endl;
+    }
+
+    /* this okey */
+    int index = 999999;
+    float max = 0.0;
+    for (int i=0 ; i < 254;i++) {
+        std::cout <<"index "<< i << "test otsu " << tongPhuongsai[i] << "  " << std::endl;
+        if (tongPhuongsai[i] > max) {
+            index = i;
+            max = tongPhuongsai[index];
+        }
+    }
+    std::cout << index << std::endl;
+    std::cout << "test " << tongPhuongsai[index] << "  " << std::endl;
+
+    return index;
+}
+
 void MainWindow::DisplayImage(QImage &image, QString titel){
     QLabel *label = new QLabel;
     label->setPixmap(QPixmap::fromImage(image));
@@ -656,6 +791,7 @@ void MainWindow::on_btn_segmentation_gray_clicked()
     QImage image (ui->il_filePath->text());
     int c = nguongTuDong(image);
     Segmentation(c);
+    int a = otsu(image);
 }
 
 void MainWindow::on_btn_linear_clicked()
@@ -722,4 +858,49 @@ void MainWindow::on_btn_sobel_x_clicked()
 void MainWindow::on_btn_sobel_y_clicked()
 {
     SobelY();
+}
+
+void MainWindow::on_btn_erode_clicked()
+{
+    QImage img (ui->il_filePath->text());
+    int c = nguongTuDong(img);
+    QImage imgseg = Segmentation(c);
+//    DisplayImage(imgseg,"teeest");
+    QImage imger = erode(imgseg);
+    DisplayImage(imger,"erode");
+
+}
+
+void MainWindow::on_btn_dilate_clicked()
+{
+    QImage img (ui->il_filePath->text());
+    int c = nguongTuDong(img);
+    QImage imgseg = Segmentation(c);
+//    DisplayImage(imgseg,"teeest");
+    QImage imger = dilation(imgseg);
+    DisplayImage(imger,"dilation");
+}
+
+void MainWindow::on_btn_open_clicked()
+{
+    QImage img (ui->il_filePath->text());
+    int c = nguongTuDong(img);
+    QImage imgseg = Segmentation(c);
+//    DisplayImage(imgseg,"teeest");
+    QImage imger = erode(imgseg);
+    DisplayImage(imger,"erode");
+    QImage imgdi = dilation(imger);
+    DisplayImage(imgdi,"dilation");
+}
+
+void MainWindow::on_bnt_close_clicked()
+{
+    QImage img (ui->il_filePath->text());
+    int c = nguongTuDong(img);
+    QImage imgseg = Segmentation(c);
+//    DisplayImage(imgseg,"teeest");
+    QImage imgdi = dilation(imgseg);
+    DisplayImage(imgdi,"dilation");
+    QImage imger = erode(imgdi);
+    DisplayImage(imger,"erode");
 }
